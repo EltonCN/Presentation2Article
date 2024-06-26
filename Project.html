@@ -14257,27 +14257,42 @@ a.anchor-link {
     </script>
     <!-- End of mathjax configuration --></head>
 <body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h1 id="Presentation2Article">Presentation2Article<a class="anchor-link" href="#Presentation2Article">&#182;</a></h1><p>Elton Cardoso do Nascimento - 233840</p>
+<p>IA382 - Seminar in Computer Engineering - 1s2024</p>
+<p>The project idea is to use a LLM to generate a informative article draft about the seminar <a href="https://feec-seminar-comp-eng.github.io/seminars/seminars-1-2024/6/">"Talking to Machines: A Practical introduction to Generative AI"</a>, by Gabriela Surita, part of 1S/2024 graduate seminar class <a href="https://feec-seminar-comp-eng.github.io/">"IA382"</a> from Unicamp. The project input is the annotations about the seminar, the intended audience and the seminar transcription. The output is the article text draft for subsequent review and editorial treatment, divided in sections. For each section layout information is created, like sentences to highlight and terms to define in auxiliary text boxes. Images will also are proposed for each section (descriptions only, without the real image).</p>
+<p>This report, with the used and generated data, can be found in the <a href="https://github.com/EltonCN/Presentation2Article">project Github repository</a>. The original view of this report as a <a href="https://github.com/EltonCN/Presentation2Article/blob/main/Project.ipynb">notebook</a> may be more enjoyable to read.</p>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>The first step is import the libraries that will be used in this project:</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span> <span class="c1"># Type hints with |</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">os</span> <span class="c1">#Path operations</span>
+<span class="kn">import</span> <span class="nn">json</span> <span class="c1">#JSON read-write</span>
+<span class="kn">import</span> <span class="nn">warnings</span> <span class="c1">#Warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span> <span class="c1">#Type hints</span>
 
-<span class="kn">import</span> <span class="nn">torch</span> <span class="c1">#spacy não carrega sem importar antes (??)</span>
-<span class="kn">import</span> <span class="nn">spacy</span> <span class="c1">#Separador em sentenças</span>
-<span class="kn">import</span> <span class="nn">tqdm</span> <span class="k">as</span> <span class="nn">tqdm</span>
-<span class="kn">from</span> <span class="nn">pyserini.search.lucene</span> <span class="kn">import</span> <span class="n">LuceneSearcher</span> <span class="c1">#Busca nos documentos</span>
-<span class="kn">import</span> <span class="nn">sentence_transformers</span> <span class="c1">#Rerankeamento</span>
-<span class="kn">import</span> <span class="nn">toolpy</span> <span class="k">as</span> <span class="nn">tp</span>
-<span class="kn">from</span> <span class="nn">toolpy.tool.tool</span> <span class="kn">import</span> <span class="n">TextLike</span>
-<span class="kn">from</span> <span class="nn">toolpy.integrations</span> <span class="kn">import</span> <span class="n">groq</span>
+<span class="kn">import</span> <span class="nn">torch</span> <span class="c1">#spacy don&#39;t load if not import before (??)</span>
+<span class="kn">import</span> <span class="nn">spacy</span> <span class="c1">#Sentence separator</span>
+<span class="kn">import</span> <span class="nn">tqdm</span> <span class="k">as</span> <span class="nn">tqdm</span> <span class="c1">#Progress bar</span>
+<span class="kn">from</span> <span class="nn">pyserini.search.lucene</span> <span class="kn">import</span> <span class="n">LuceneSearcher</span> <span class="c1">#Document search</span>
+<span class="kn">import</span> <span class="nn">sentence_transformers</span> <span class="c1">#Reranking</span>
+<span class="kn">import</span> <span class="nn">toolpy</span> <span class="k">as</span> <span class="nn">tp</span> <span class="c1">#LLM Tools</span>
+<span class="kn">from</span> <span class="nn">toolpy.tool.tool</span> <span class="kn">import</span> <span class="n">TextLike</span> <span class="c1">#Type hints</span>
+<span class="kn">from</span> <span class="nn">toolpy.integrations</span> <span class="kn">import</span> <span class="n">groq</span> <span class="c1">#Groq interface</span>
 </pre></div>
 
      </div>
@@ -14285,6 +14300,13 @@ a.anchor-link {
 </div>
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>The used LLM is the <a href="https://llama.meta.com/llama3/">Llama3 70B model</a>, accessed using the <a href="https://console.groq.com/">Groq API</a>. For creating tools with the model, <a href="https://github.com/EltonCN/toolpy">toolpy</a> is used.</p>
+<p>For that, we need to set the model as the default model for the tools:</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -14302,6 +14324,20 @@ a.anchor-link {
 </div>
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Is important to note that the Groq API key must be setted in the environment variable <code>GROQ_API_KEY</code>.</p>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Outline">Outline<a class="anchor-link" href="#Outline">&#182;</a></h2><p>Now that the model is configured, is time for generating a outline of the article. The first tool will use the article theme and intended audience for that.</p>
+<p>A short introdution to <code>toolpy</code> tools: each tool executes a operation, receiving a query and returning the result. For a complete tool it needs to specify a description of it's operation and it's inputs, and returning the result and a description of it's parts. Several tools are based on performing simple inference with an LLM and are called "BasicTool". They directly define which prompts such as system and user roles will be used, with the operation being performed by the base class, and the return description must be fixed.</p>
+<p>Our first tool, "OutlineGenerator" works this way. Observe that, as all the other BasicTools created in this project, they expect the model to return it's results in a JSON format. The BaseClass also parses the LLM inference.</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -14344,19 +14380,7 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;data</span><span class="se">\\</span><span class="s2">Seminar transcription - Only presentation.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-    <span class="n">seminar_transcription</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
-
-<span class="n">seminar_transcription_filtered</span> <span class="o">=</span> <span class="p">[]</span>
-
-<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">seminar_transcription</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">line</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">or</span> <span class="n">line</span> <span class="o">==</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">:</span>
-        <span class="k">continue</span>
-
-    <span class="n">seminar_transcription_filtered</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-
-<span class="n">seminar_transcription</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">seminar_transcription_filtered</span><span class="p">)</span>
-<span class="n">seminar_transcription</span> <span class="o">=</span> <span class="n">seminar_transcription</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">outline_generator</span> <span class="o">=</span> <span class="n">OutlineGenerator</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -14364,6 +14388,12 @@ a.anchor-link {
 </div>
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>BasicTools can also receive a context that is added to the user prompt, before the tool-defined prompt. We gonna use that for injecting personal keypoints annoted during the seminar, for guiding the model:</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -14393,8 +14423,6 @@ a.anchor-link {
 
 <span class="s1">The informative article must use the above provided information. </span>
 <span class="s1">&#39;&#39;&#39;</span>
-
-<span class="n">query</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;theme&quot;</span><span class="p">:</span><span class="s2">&quot;generative AI&quot;</span><span class="p">,</span> <span class="s2">&quot;audience&quot;</span><span class="p">:</span><span class="s2">&quot;general public&quot;</span><span class="p">}</span>
 </pre></div>
 
      </div>
@@ -14402,13 +14430,19 @@ a.anchor-link {
 </div>
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>The query is defined with the theme and intended audience, as specified by the tool:</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">outline_generator</span> <span class="o">=</span> <span class="n">OutlineGenerator</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">query</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;theme&quot;</span><span class="p">:</span><span class="s2">&quot;generative AI&quot;</span><span class="p">,</span> <span class="s2">&quot;audience&quot;</span><span class="p">:</span><span class="s2">&quot;general public&quot;</span><span class="p">}</span>
 </pre></div>
 
      </div>
@@ -14416,6 +14450,12 @@ a.anchor-link {
 </div>
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>And we can the generate the article outline and inspect the generated outline:</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -14430,6 +14470,99 @@ a.anchor-link {
 </div>
 </div>
 
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Title -&quot;</span><span class="p">,</span> <span class="n">outline_result</span><span class="p">[</span><span class="s2">&quot;article_name&quot;</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">outline_result</span><span class="p">[</span><span class="s2">&quot;article&quot;</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">section</span><span class="p">[</span><span class="s1">&#39;section_name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">section</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Title - Demystifying Generative AI: Understanding the Concepts and Concerns
+
+Introduction to Generative AI: Defining generative AI as a negative classification: AI that is not for classification, regression, or control, and its ability to generate digital content.
+
+Understanding Generative AI Models: Explaining sequence modeling (transformers), GAN, VAE, diffusion models as examples of generative AI and how they work, including the steps of formatting, tokenization, sequence modeling (inference), detokenization, and parsing.
+
+The Importance of Instruction Tuning: Discussing how most models are instruction tuned for specific tasks using techniques like finetuning and reinforcement learning from human feedback, and how it&#39;s like an editorial decision from the model creators.
+
+The Ideological Discourse Around Generative AI: Exploring the debates around emergentism, escalating laws, Turing test, anthropomorphism, and Shannon divide, and the need to be cautious with metaphors that can mislead the analysis of models.
+
+The Limitations of Generative AI: Discussing the limitations of generative AI, including the difficulty of reintroducing semantics and the importance of understanding the capabilities of these models.
+
+Best Practices for Using Generative AI: Providing tips for using generative AI, including few-shot learning, instruction tuning, being aware of bias and hype, and not training from scratch.
+
+Conclusion: The Future of Prompt Engineering: Summarizing the importance of prompt engineering in generative AI and its potential applications for the general public.
+
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Reference-information">Reference information<a class="anchor-link" href="#Reference-information">&#182;</a></h2><p>Before the section text generation, we gonna generate a reference information for each section. This reference information will be generated from the transcription of the seminar, using a RAG (Retrieval-Augmented Generation) system.</p>
+<p>The first step is to get the seminar transcription and format it:</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;data</span><span class="se">\\</span><span class="s2">Seminar transcription - Only presentation.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+    <span class="n">seminar_transcription</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+<span class="n">seminar_transcription_filtered</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">seminar_transcription</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">line</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">or</span> <span class="n">line</span> <span class="o">==</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">:</span>
+        <span class="k">continue</span>
+
+    <span class="n">seminar_transcription_filtered</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+<span class="n">seminar_transcription</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">seminar_transcription_filtered</span><span class="p">)</span>
+<span class="n">seminar_transcription</span> <span class="o">=</span> <span class="n">seminar_transcription</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>We then transform it in a set of segments, each segments with <code>max_length</code> sentences:</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -14492,6 +14625,12 @@ a.anchor-link {
 
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>In total, we got 119 segments:</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -14529,6 +14668,12 @@ a.anchor-link {
 
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>The segments are exported to a JSONL file:</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -14537,20 +14682,8 @@ a.anchor-link {
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s2">&quot;data\iirc_indices&quot;</span><span class="p">):</span>
     <span class="o">!</span>mkdir<span class="w"> </span>data<span class="se">\i</span>irc_indices
-</pre></div>
 
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;data/iirc_indices/contents.jsonl&quot;</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
+<span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;data/iirc_indices/contents.jsonl&quot;</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
 
 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">treated_documents</span><span class="p">):</span>
     <span class="n">doc</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
@@ -14563,6 +14696,12 @@ a.anchor-link {
 </div>
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>And pyserini is used to create a index from the segments:</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -14672,6 +14811,12 @@ Caused by: com.fasterxml.jackson.core.JsonParseException: Unrecognized token &#3
 </div>
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>The next tool, "SearchTool", searchs the documents for term correspondences. After that, a dense reranking is used, that is, a cossine similarity between the segments embeddings and query term embedding. The reranking filters the top-k relevant documents.</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -14745,7 +14890,13 @@ Caused by: com.fasterxml.jackson.core.JsonParseException: Unrecognized token &#3
 </div>
 </div>
 
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>A example of the tool usage:</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
@@ -14753,20 +14904,7 @@ Caused by: com.fasterxml.jackson.core.JsonParseException: Unrecognized token &#3
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">query</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;search_term&quot;</span><span class="p">:</span><span class="s2">&quot;Shannon&quot;</span><span class="p">}</span>
 <span class="n">result</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">search_tool</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;search_result&quot;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;search_result&quot;</span><span class="p">])</span>
 </pre></div>
 
      </div>
@@ -14800,6 +14938,12 @@ There&#39;s also does notification like it&#39;s making a look like Disney chara
 
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>But what to search for? The next tools selects a list of serach terms from a topic and it's description:</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -14850,6 +14994,12 @@ There&#39;s also does notification like it&#39;s making a look like Disney chara
 </div>
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>We can then generate search terms from each section, using its name as the topic and its description as the topic description:</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -14869,6 +15019,57 @@ There&#39;s also does notification like it&#39;s making a look like Disney chara
 </div>
 </div>
 
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">outline_result</span><span class="p">[</span><span class="s2">&quot;article&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;search_terms&quot;</span><span class="p">]</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[&nbsp;]:</div>
+
+
+
+
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
+<pre>[&#39;generative ai definition&#39;,
+ &#39;ai types&#39;,
+ &#39;machine learning categories&#39;,
+ &#39;digital content creation&#39;,
+ &#39;non classification ai&#39;,
+ &#39;ai versus ml&#39;,
+ &#39;deep learning applications&#39;,
+ &#39;creative ai&#39;,
+ &#39;intelligent content generation&#39;]</pre>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>However, the pure search result will be too much text for the Groq API token limit, and it can also confuse the model, being a very long text with repeated information. The Summarizer tool is created for summarizing a text according to a focal topic:</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -14920,6 +15121,12 @@ There&#39;s also does notification like it&#39;s making a look like Disney chara
 </div>
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Finally, the section reference information can be generated, searching for the search terms in the seminar transcript, and summarizing the retrived information focusing in the search term:</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -14950,7 +15157,7 @@ There&#39;s also does notification like it&#39;s making a look like Disney chara
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">section</span><span class="p">[</span><span class="s2">&quot;search_terms&quot;</span><span class="p">]</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">outline_result</span><span class="p">[</span><span class="s2">&quot;article&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;reference_information&quot;</span><span class="p">]</span>
 </pre></div>
 
      </div>
@@ -14972,16 +15179,15 @@ There&#39;s also does notification like it&#39;s making a look like Disney chara
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>[&#39;prompt engineering future&#39;,
- &#39;generative AI applications&#39;,
- &#39;natural language processing innovations&#39;,
- &#39;AI for the general public&#39;,
- &#39;prompt engineering benefits&#39;,
- &#39;AI model optimization techniques&#39;,
- &#39;human-AI collaboration&#39;,
- &#39;AI literacy for non-technical users&#39;,
- &#39;responsible AI development practices&#39;,
- &#39;future of natural language understanding&#39;]</pre>
+<pre>[{&#39;summary&#39;: &#34;Generative AI refers to AI that produces unbounded digital content, often associated with creative tasks, and involves sequence modeling, which is a predictive system that can predict the next element of a sequence. It&#39;s differentiated from other types of AI, such as predictive AI, and is key to understanding systems that involve producing content.&#34;},
+ {&#39;summary&#39;: &#39;There are two main types of AI: predictive AI, associated with statistical tasks, and generative AI, associated with open-ended creative tasks and digital content creation. Generative AI includes chatbots, text-to-image systems, and other multimodal agents, and is often differentiated from narrow AI.&#39;},
+ {&#39;summary&#39;: &#39;The text discusses machine learning categories, distinguishing them from classification and regression, and introduces the concept of human consumable content generation, such as text, videos, images, and audio, enabled by machines or systems. It highlights that this type of machine learning is different from traditional classification and regression, and is capable of producing unique compilations of content.&#39;},
+ {&#39;summary&#39;: &#39;Generative AI is a type of AI that produces human-consumable digital content, such as text, videos, images, and audio, and is not limited to classification, regression, or multitask learning. Examples of generative AI include chatbots, text-to-image and text-to-audio systems, which can generate new content.&#39;},
+ {&#39;summary&#39;: &#39;Generative AI is a type of AI that produces human-consumable content such as text, videos, images, or audio, and is often associated with open-ended creative tasks, differentiating it from predictive AI which is associated with statistical tasks. It does not involve classification, regression, or multi-choice action selection, and is exemplified by language models like GPT, Gemini, and Claude, as well as chatbots and text-to-image systems.&#39;},
+ {&#39;summary&#39;: &#39;The text does not explicitly discuss the difference between AI and ML. However, it mentions AI subfields such as predictive AI, associated with statistical tasks, and generative AI, associated with open-ended creative tasks. The speaker highlights the importance of recognizing intelligence that does not look human, citing examples like AIS predicting protein structures and generating AI as transformative opportunities in the field.&#39;},
+ {&#39;summary&#39;: &#39;The speaker discusses deep learning applications, specifically in text completion and chatbots, explaining how they work and how to train large sequence models. The presentation will cover hands-on tips and tricks for using these models, as well as providing an introduction to generative AI and its applications.&#39;},
+ {&#39;summary&#39;: &#34;Generative AI is associated with open-ended creative tasks, distinguishes from predictive AI which is classed with statistical tasks. It enables modern AI assistants, such as chatbots and text-to-image systems, which are incredibly powerful and can help humans, but may not be recognized as intelligent because they don&#39;t look like human intelligence.&#34;},
+ {&#39;summary&#39;: &#39;The speaker is introducing the concept of generative AI, specifically sequence modeling, which is a key component in modern chatbots and other interactive systems. Sequence models are predictive systems that generate the next element in a sequence, and understanding them is crucial for developing intelligent content generation. The presentation will cover the technical basics of sequence modeling and its applications in AI, followed by a more abstract discussion on the interpretations and philosophy of AI.&#39;}]</pre>
 </div>
 
 </div>
@@ -14990,43 +15196,19 @@ There&#39;s also does notification like it&#39;s making a look like Disney chara
 
 </div>
 
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span> 
-</pre></div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Observe that, because of the parallel sequence of operations used according to each search term, the reference information can contain repeated information between terms.</p>
 
-     </div>
 </div>
 </div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[&nbsp;]:</div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>dict_keys([&#39;section_name&#39;, &#39;description&#39;, &#39;search_terms&#39;, &#39;reference_information&#39;])</pre>
-</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Text-generator">Text generator<a class="anchor-link" href="#Text-generator">&#182;</a></h2><p>With the names, descriptions and reference information of the sections, we can generate their text.</p>
+<p>The SectionTextGenerator uses this informations for that:</p>
 
 </div>
-
-</div>
-
-</div>
-
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -15081,6 +15263,13 @@ There&#39;s also does notification like it&#39;s making a look like Disney chara
 </div>
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>As the first tool, a context is created with the reference information for injecting this information in the tool.</p>
+<p>Also, because of the more complex and long prompt, the LLM result can sometimes not be in a valid JSON format. We repeat the query if that occurs.</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -15136,6 +15325,59 @@ There&#39;s also does notification like it&#39;s making a look like Disney chara
 
 </div>
 
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">outline_result</span><span class="p">[</span><span class="s2">&quot;article&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;text&quot;</span><span class="p">])</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Generative AI is a type of artificial intelligence that doesn&#39;t fit into the traditional categories of AI, such as classification, regression, or control. Instead, its primary function is to create new, original digital content. This can include images, music, text, and even entire videos. Think of it as a creative partner that can generate ideas, complete tasks, and bring new concepts to life. With its ability to produce novel and diverse content, generative AI is revolutionizing industries and changing the way we experience digital media.
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Special-elements">Special elements<a class="anchor-link" href="#Special-elements">&#182;</a></h2><p>The next step is to create special elements blocks. Three elements will be generated:</p>
+<ul>
+<li>Highlights: quotes from the text to highlight next to it paragraph.</li>
+<li>Definitions: terms to define.</li>
+<li>Images: proposal of images for the section.</li>
+</ul>
+<p>They are editorial elements that will need further processing before the creation of the final article.</p>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h3 id="Highlights">Highlights<a class="anchor-link" href="#Highlights">&#182;</a></h3><p>For the highlights, we create a tool to select sentences from the sections to highlight:</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -15243,6 +15485,49 @@ There&#39;s also does notification like it&#39;s making a look like Disney chara
 
 </div>
 
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">outline_result</span><span class="p">[</span><span class="s2">&quot;article&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;higlighted_sentences&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[&nbsp;]:</div>
+
+
+
+
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
+<pre>&#34;Generative AI is a type of artificial intelligence that doesn&#39;t fit into the traditional categories of AI, such as classification, regression, or control.&#34;</pre>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>But, the LLM can sometimes select sentences that aren't in the text, or that not appears exactly as presented. Because of that we need to filter out incorrect sentences:</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -15265,6 +15550,12 @@ There&#39;s also does notification like it&#39;s making a look like Disney chara
 </div>
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h3 id="Definitions">Definitions<a class="anchor-link" href="#Definitions">&#182;</a></h3><p>The definitions are selected in a similar manner. They are selected terms to define from the text, with the definition, both created using the model:</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -15375,6 +15666,50 @@ There&#39;s also does notification like it&#39;s making a look like Disney chara
 
 </div>
 
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">outline_result</span><span class="p">[</span><span class="s2">&quot;article&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;definitions&quot;</span><span class="p">]</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[&nbsp;]:</div>
+
+
+
+
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
+<pre>[{&#39;term&#39;: &#39;regression&#39;,
+  &#39;definition&#39;: &#39;A type of machine learning task where a model predicts a continuous or numerical value based on input data.&#39;}]</pre>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h3 id="Images">Images<a class="anchor-link" href="#Images">&#182;</a></h3><p>The images are proposed for each section text.</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -15485,6 +15820,56 @@ There&#39;s also does notification like it&#39;s making a look like Disney chara
 
 </div>
 
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">outline_result</span><span class="p">[</span><span class="s2">&quot;article&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;images&quot;</span><span class="p">]</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[&nbsp;]:</div>
+
+
+
+
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
+<pre>[{&#39;name&#39;: &#39;Generative AI Creative Partner&#39;,
+  &#39;description&#39;: &#39;Illustration of a robot partner with a creative spark, surrounded by digital content&#39;}]</pre>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Article-export">Article export<a class="anchor-link" href="#Article-export">&#182;</a></h2><p>With the generated informations, we than export a draft. We will use a Markdown format for that, in special the <a href="https://help.obsidian.md/Editing+and+formatting/Basic+formatting+syntax">"Obsidian" Markdown flavor</a>.</p>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Before, the <code>generate_callout</code> function is defined for creating callouts for the special elements:</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -15503,43 +15888,12 @@ There&#39;s also does notification like it&#39;s making a look like Disney chara
 </div>
 </div>
 
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">generate_callout</span><span class="p">(</span><span class="s2">&quot;Test&quot;</span><span class="p">,</span> <span class="s2">&quot;My test text</span><span class="se">\n</span><span class="s2">Hey!&quot;</span><span class="p">,</span> <span class="s2">&quot;quote&quot;</span><span class="p">))</span>
-</pre></div>
-
-     </div>
 </div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>&gt; [!quote]- Test
-&gt; My test text
-&gt; Hey!
-</pre>
-</div>
-</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>We than export the final draft:</p>
 
 </div>
-
-</div>
-
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
@@ -15590,66 +15944,27 @@ There&#39;s also does notification like it&#39;s making a look like Disney chara
 </div>
 </div>
 
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">IFrame</span><span class="p">,</span> <span class="n">display</span>
-<span class="n">filepath</span> <span class="o">=</span> <span class="s2">&quot;generated_article.pdf&quot;</span>
-<span class="n">IFrame</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">700</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
-</pre></div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>The rendered <strong>result</strong> can be viewed in the project repository: <a href="https://github.com/EltonCN/Presentation2Article/blob/main/generated_article.pdf">generated_article.pdf</a>.</p>
+<p>It contains all the generated information, and can be used as a starting point for creating the final article, with suggestions of sections, texts, images, quotes and definitions.</p>
 
-     </div>
 </div>
 </div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[&nbsp;]:</div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-
-        <iframe
-            width="700"
-            height="400"
-            src="generated_article.pdf"
-            frameborder="0"
-            allowfullscreen
-        ></iframe>
-        
-</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Conclusion">Conclusion<a class="anchor-link" href="#Conclusion">&#182;</a></h2><p>Analyzing the generated draft contents, it is possible to observe how it contains information taken from the presentation, while also including some new information that was existing in the model weights, like the other model types definitions (GAN, VAE). The presented technique can be useful for generating informative materials for presentations, and perhaps even expository classes.</p>
+<p>However, a bad aspect of the generated article is the number of sections with just one paragraph. The key topics also seem to have restricted the information used from the seminar too much, which may not be desirable.</p>
+<p>Futures possible developments includes:</p>
+<ul>
+<li>Use of information from selected articles during the discipline's bibliographic review task</li>
+<li>Export to a LaTeX file with formatting closer to the final article, facilitating the editorial process.</li>
+<li>Use of a image generative model for generating drafts of the proposed images.</li>
+<li>Perform a global summary of the seminar as an alternative to the information used to generate the outline (key topics).</li>
+</ul>
 
 </div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span> 
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
 </div>
 </body>
 
